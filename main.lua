@@ -1,12 +1,11 @@
 local Maze = require 'maze'
 local Player = require 'player'
 local Spritesheet = require 'spritesheet'
-local AnimatedSprite = require 'animatedsprite'
 
 local LAND_SPRITESHEET_PATH = "assets/Sprout Lands - Sprites - premium pack/Tilesets/ground tiles/New tiles/Grass_Hill_Tiles_v2.png"
 local TILE_SIZE = 16
 
-local SCALE_FACTOR = 4
+local SCALE_FACTOR = 3
 
 local currentTime = 0
 
@@ -14,7 +13,6 @@ local mazeHeight = 10
 local mazeWidth = 10
 
 local spritesheets = {}
-local animatedSprites = {}
 local maze = nil
 local mazeCanvas = love.graphics.newCanvas(mazeWidth * TILE_SIZE)
 
@@ -68,6 +66,10 @@ function love.load()
                 TILE_SIZE * (x - 1), -- x, 1-based index to 0-based offet
                 TILE_SIZE * (y - 1) -- y, 1-based index to 0-based offet
             )
+            -- debug: show distance from origin
+            local font = love.graphics.newFont(7, "mono")
+            local text = love.graphics.newText(font, maze:cellAt(x .. "," .. y).distanceFromOrigin)
+            love.graphics.draw(text, TILE_SIZE * (x - 1), TILE_SIZE * (y - 1))
         end
     end
     love.graphics.setCanvas()

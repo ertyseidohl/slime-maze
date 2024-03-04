@@ -27,6 +27,7 @@ function Cell:initialize(x, y)
     self.neighbors = {} -- array
     self.connections = {} -- set
     self.key = Cell:key(x, y)
+    self.distanceFromOrigin = nil
 end
 
 function Cell:key(x, y)

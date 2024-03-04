@@ -7,6 +7,7 @@ function Maze:initialize(width, height)
     print("Initializing Maze with seed " .. seed)
     math.randomseed(seed)
     self.cells = {}
+    self.cellsByDistanceFromOrigin = {}
     self.width = width
     self.height = height
     for x = 1, width, 1 do
@@ -57,6 +58,7 @@ function Maze:generate()
 
     local working = true
     local curr = self:cellAt(Cell:key(1, 1))
+    curr.distanceFromOrigin = 0
     local loopStop = 0
     local LOOP_STOP_MAX = 10000
 
@@ -85,6 +87,14 @@ function Maze:generate()
             -- Create a connection between current and nextCell
             nextCell.connections[curr.key] = true
             curr.connections[nextCell.key] = true
+
+            -- Push nextCell into cellsByDistanceFromOrigin
+            nextCell.distanceFromOrigin = curr.distanceFromOrigin + 1
+            if not self.cellsByDistanceFromOrigin[nextCell.distanceFromOrigin] then
+                self.cellsByDistanceFromOrigin[nextCell.distanceFromOrigin] = {}
+            end
+            table.insert(self.cellsByDistanceFromOrigin[nextCell.distanceFromOrigin], nextCell)
+
 
             -- Push the previous cell onto the stack
             table.insert(stackKeys, curr.key)

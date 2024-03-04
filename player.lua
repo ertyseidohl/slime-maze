@@ -170,13 +170,13 @@ end
 
 function Player:draw(renderInfo)
     -- Draw debug player
-    if self.finishingMoveAnimation then
-        love.graphics.setColor(0, 1, 0)
-    else
-        love.graphics.setColor(1, 1, 1)
-    end
-    love.graphics.rectangle("fill", self.x, self.y, PLAYER_SIZE, PLAYER_SIZE)
-    love.graphics.reset()
+    -- if self.finishingMoveAnimation then
+    --     love.graphics.setColor(0, 1, 0)
+    -- else
+    --     love.graphics.setColor(1, 1, 1)
+    -- end
+    -- love.graphics.rectangle("fill", self.x, self.y, PLAYER_SIZE, PLAYER_SIZE)
+    -- love.graphics.reset()
 
     -- Draw animated player sprite
     if self.moving == NOT_MOVING and not self.finishingMoveAnimation then
@@ -190,12 +190,12 @@ function Player:draw(renderInfo)
     end
 
     -- Draw debug player target
-    if self.targetMazeX and self.targetMazeY then
-        local targetCenter = self:getCenterOf(self.targetMazeX, self.targetMazeY)
-        love.graphics.setColor(1, 0, 0)
-        love.graphics.rectangle("fill", targetCenter["x"], targetCenter["y"], PLAYER_SIZE, PLAYER_SIZE)
-        love.graphics.reset()
-    end
+    -- if self.targetMazeX and self.targetMazeY then
+    --     local targetCenter = self:getCenterOf(self.targetMazeX, self.targetMazeY)
+    --     love.graphics.setColor(1, 0, 0)
+    --     love.graphics.rectangle("fill", targetCenter["x"], targetCenter["y"], PLAYER_SIZE, PLAYER_SIZE)
+    --     love.graphics.reset()
+    -- end
 end
 
 return Player
