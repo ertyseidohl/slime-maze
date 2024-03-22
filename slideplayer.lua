@@ -14,10 +14,10 @@ function Player:initialize(x, y)
 end
 
 function Player:update()
-    local movingUp = love.keyboard.isDown('w')
-    local movingDown = love.keyboard.isDown('s')
-    local movingLeft = love.keyboard.isDown('a')
-    local movingRight = love.keyboard.isDown('d')
+    local movingUp = love.keyboard.isDown('w', 'up')
+    local movingDown = love.keyboard.isDown('s', 'down')
+    local movingLeft = love.keyboard.isDown('a', 'left')
+    local movingRight = love.keyboard.isDown('d', 'right')
 
     local ax = 0
     local ay = 0

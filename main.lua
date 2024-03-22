@@ -9,22 +9,49 @@ local SCALE_FACTOR = 3
 
 local currentTime = 0
 
-local mazeHeight = 10
-local mazeWidth = 10
+local mazeHeight = 12
+local mazeWidth = 14
 
 local spritesheets = {}
 local maze = nil
-local mazeCanvas = love.graphics.newCanvas(mazeWidth * TILE_SIZE)
+local mazeCanvas = nil
 
 -- debug player
 local debugPlayer
 
-function love.load()
+local function createMaze()
     maze = Maze:new(mazeWidth, mazeHeight)
     maze:print()
 
-    local tileKey = maze:tileKeyAt(1, 1)
+    -- create maze canvas
+    mazeCanvas = love.graphics.newCanvas(
+        mazeWidth * TILE_SIZE + 1, -- add one extra for the end tile)
+        mazeHeight * TILE_SIZE
+    )
+    love.graphics.setCanvas(mazeCanvas)
+    assert(maze ~= nil, "maze is nil!")
+    for y = 1, mazeHeight, 1 do
+        for x = 1, mazeWidth, 1 do
+            local tileKey = maze:tileKeyAt(x, y)
+            love.graphics.draw(
+                spritesheets["land"].image, -- drawable
+                spritesheets["land"]:getNamedQuad(tileKey), -- quad
+                TILE_SIZE * (x - 1), -- x, 1-based index to 0-based offet
+                TILE_SIZE * (y - 1) -- y, 1-based index to 0-based offet
+            )
+        end
+    end
+    -- Add special end cell
+    love.graphics.draw(
+        spritesheets["land"].image, -- drawable
+        spritesheets["land"]:getNamedQuad("left"), -- quad
+        TILE_SIZE * (mazeWidth), -- x, 1-based index to 0-based offet
+        TILE_SIZE * (mazeHeight - 1) -- y, 1-based index to 0-based offet
+    )
+    love.graphics.setCanvas()
+end
 
+function love.load()
     -- Land tiles
     spritesheets["land"] = Spritesheet:new(LAND_SPRITESHEET_PATH, TILE_SIZE, TILE_SIZE)
     spritesheets["land"]:nameQuads({
@@ -53,28 +80,8 @@ function love.load()
         {"uprightdownleft", 9, 5},
     })
 
+    createMaze()
 
-    -- create maze canvas
-    love.graphics.setCanvas(mazeCanvas)
-    assert(maze ~= nil, "maze is nil!")
-    for y = 1, mazeHeight, 1 do
-        for x = 1, mazeWidth, 1 do
-            local tileKey = maze:tileKeyAt(x, y)
-            love.graphics.draw(
-                spritesheets["land"].image, -- drawable
-                spritesheets["land"]:getNamedQuad(tileKey), -- quad
-                TILE_SIZE * (x - 1), -- x, 1-based index to 0-based offet
-                TILE_SIZE * (y - 1) -- y, 1-based index to 0-based offet
-            )
-            -- debug: show distance from origin
-            local font = love.graphics.newFont(7, "mono")
-            local text = love.graphics.newText(font, maze:cellAt(x .. "," .. y).distanceFromOrigin)
-            love.graphics.draw(text, TILE_SIZE * (x - 1), TILE_SIZE * (y - 1))
-        end
-    end
-    love.graphics.setCanvas()
-
-    -- create player
     debugPlayer = Player:new(1, 1, maze, TILE_SIZE * SCALE_FACTOR)
 end
 
@@ -83,6 +90,11 @@ function love.update(dt)
 
     -- update debug player
     debugPlayer:update(dt)
+
+    if debugPlayer.mazeX == mazeWidth + 1 and debugPlayer.mazeY == mazeHeight then
+        createMaze()
+        debugPlayer = Player:new(1, 1, maze, TILE_SIZE * SCALE_FACTOR)
+    end
 end
 
 function love.draw(dt)
@@ -102,4 +114,12 @@ function love.draw(dt)
     -- draw debug player
     debugPlayer:draw()
 
+end
+
+function love.joystickpressed(joystick, button)
+    print("joystick", joystick, button)
+end
+
+function love.gamepadpressed(gamepad, button )
+    print("gamepad", gamepad, button)
 end

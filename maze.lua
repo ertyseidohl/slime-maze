@@ -2,6 +2,9 @@ local class = require 'lib.middleclass'
 local Cell = require 'cell'
 local Maze = class('Maze')
 
+-- local MAZE_ALGO = "backtracker"
+local MAZE_ALGO = "kruskal"
+
 function Maze:initialize(width, height)
     local seed = os.time()
     print("Initializing Maze with seed " .. seed)
@@ -53,6 +56,84 @@ end
 
 function Maze:generate()
     print("Generating Maze")
+    if MAZE_ALGO == "backtracker" then
+        self:generateBacktracker()
+    elseif MAZE_ALGO == "kruskal" then
+        self:generateKruskal()
+    else
+        assert(false, "Unrecognized maze algo")
+    end
+
+    -- Add special end cell
+    local endCell = Cell:new(self.width + 1, self.height)
+    self.cells[endCell.key] = endCell
+    local penultimateCell = self.cells[Cell:key(self.width, self.height)]
+    endCell.connections[penultimateCell.key] = true
+    penultimateCell.connections[endCell.key] = true
+end
+
+function Maze:generateKruskal()
+    local allEdges = {}
+    local cellIds = {}
+    -- Label all cells with a unique id
+    local uniqueId = 1
+    for y = 1, self.height, 1 do
+        for x = 1, self.width, 1 do
+            cellIds[Cell:key(x, y)] = uniqueId
+            uniqueId = uniqueId + 1
+        end
+    end
+    -- Create a list of all edges in the graph
+    for y = 1, self.height, 1 do
+        for x = 1, self.width, 1 do
+            if self:isValid(x + 1, y) then
+                table.insert(allEdges, {
+                    ["a"] = Cell:key(x, y);
+                    ["b"] = Cell:key(x + 1, y);
+                })
+            end
+            if self:isValid(x, y + 1) then
+                table.insert(allEdges, {
+                    ["a"] = Cell:key(x, y);
+                    ["b"] = Cell:key(x, y + 1);
+                })
+            end
+        end
+    end
+    -- Shuffle the list of all edges in the graph
+    for i = 1, #allEdges, 1 do
+        local rand = math.random(#allEdges)
+        allEdges[i], allEdges[rand] = allEdges[rand], allEdges[i]
+    end
+
+    for _, edge in ipairs(allEdges) do
+        -- If the cells have different ids
+        assert(cellIds[edge.a], "cell id for edge a was nil")
+        assert(cellIds[edge.b], "cell id for edge b was nil")
+        if cellIds[edge.a] ~= cellIds[edge.b] then
+            -- Connect the two cells
+            local cellA = self:cellAt(edge.a)
+            local cellB = self:cellAt(edge.b)
+
+            cellA.connections[edge.b] = true
+            cellB.connections[edge.a] = true
+
+             -- Update all cells with id same as cell B
+             -- This could be optimized!!
+             local oldCellId = cellIds[edge.b]
+             for y = 1, self.height, 1 do
+                for x = 1, self.width, 1 do
+                    if cellIds[Cell:key(x, y)] == oldCellId then
+                        cellIds[Cell:key(x, y)] = cellIds[edge.a]
+                    end
+                end
+             end
+        end
+    end
+end
+
+
+function Maze:generateBacktracker()
     local visitedKeys = {}
     local stackKeys = {}
 
@@ -94,7 +175,6 @@ function Maze:generate()
                 self.cellsByDistanceFromOrigin[nextCell.distanceFromOrigin] = {}
             end
             table.insert(self.cellsByDistanceFromOrigin[nextCell.distanceFromOrigin], nextCell)
-
 
             -- Push the previous cell onto the stack
             table.insert(stackKeys, curr.key)

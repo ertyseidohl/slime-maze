@@ -12,7 +12,7 @@ MOVING_DOWN = "d"
 MOVING_LEFT = "l"
 
 PLAYER_SIZE = 10
-PLAYER_SPEED = 1
+PLAYER_SPEED = 2
 CLOSE_ENOUGH = 1
 
 PLAYER_Y_OFFSET = 8 -- the ground sprites are slightly low
@@ -86,10 +86,10 @@ function Player:update(dt)
     self.time = self.time + dt
 
     -- Figure out what keys the player is pressing
-    local pressingUp = love.keyboard.isDown('w')
-    local pressingDown = love.keyboard.isDown('s')
-    local pressingLeft = love.keyboard.isDown('a')
-    local pressingRight = love.keyboard.isDown('d')
+    local pressingUp = love.keyboard.isDown('w', 'up')
+    local pressingDown = love.keyboard.isDown('s', 'down')
+    local pressingLeft = love.keyboard.isDown('a', 'left')
+    local pressingRight = love.keyboard.isDown('d', 'right')
 
     local pressingSomething = pressingUp or pressingDown or pressingLeft or pressingRight
 
