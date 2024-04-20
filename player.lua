@@ -91,8 +91,6 @@ function Player:update(dt)
     local pressingLeft = love.keyboard.isDown('a', 'left')
     local pressingRight = love.keyboard.isDown('d', 'right')
 
-    local pressingSomething = pressingUp or pressingDown or pressingLeft or pressingRight
-
     -- Update if we are facing right
     if pressingLeft and self.facingRight then
         self.facingRight = false
@@ -169,15 +167,6 @@ function Player:update(dt)
 end
 
 function Player:draw(renderInfo)
-    -- Draw debug player
-    -- if self.finishingMoveAnimation then
-    --     love.graphics.setColor(0, 1, 0)
-    -- else
-    --     love.graphics.setColor(1, 1, 1)
-    -- end
-    -- love.graphics.rectangle("fill", self.x, self.y, PLAYER_SIZE, PLAYER_SIZE)
-    -- love.graphics.reset()
-
     -- Draw animated player sprite
     if self.moving == NOT_MOVING and not self.finishingMoveAnimation then
         local animationIndex = math.floor((self.time * IDLE_ANIMATION_RATE) % self.idleSprite:getFrameCount()) + 1
