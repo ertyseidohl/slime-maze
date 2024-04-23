@@ -1,0 +1,41 @@
+
+        rect.cameraVX = rect.cameraVX * CAMERA_FRICTION
+        rect.cameraVY = rect.cameraVY * CAMERA_FRICTION
+
+        if rect.cameraVX < CAMERA_EPSILON then
+            rect.cameraVX = 0
+        end
+        if rect.cameraVY < CAMERA_EPSILON then
+            rect.cameraVY = 0
+        end
+
+        if cameraRelativeX < CAMERA_BUFFER and rect.cameraX >= 0 then
+            rect.cameraVX = rect.cameraVX - CAMERA_SPEED
+            print("left")
+        elseif cameraRelativeX > rect.width - CAMERA_BUFFER and rect.cameraX + rect.width < mazeCanvas:getWidth() then
+            rect.cameraVX = rect.cameraVX + CAMERA_SPEED
+            print("right")
+        end
+
+        if cameraRelativeY < CAMERA_BUFFER and rect.cameraY >= 0 then
+            rect.cameraVY = rect.cameraVY - CAMERA_SPEED
+            print("up")
+        elseif cameraRelativeY > rect.height - CAMERA_BUFFER and rect.cameraY + rect.height < mazeCanvas:getHeight() then
+            rect.cameraVY = rect.cameraVY + CAMERA_SPEED
+            print("down")
+        end
+
+        rect.cameraX = rect.cameraX + rect.cameraVX
+        rect.cameraY = rect.cameraY + rect.cameraVY
+
+        if rect.cameraX < 0 then
+            rect.cameraX = 0
+        elseif rect.cameraX + rect.width > mazeCanvas:getWidth() then
+            rect.cameraX = mazeCanvas:getWidth() - rect.width
+        end
+
+        if rect.cameraY < 0 then
+            rect.cameraY = 0
+        elseif rect.cameraY + rect.height > mazeCanvas:getHeight() then
+            rect.cameraY = mazeCanvas:getHeight() - rect.height
+        end

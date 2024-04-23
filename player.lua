@@ -167,14 +167,16 @@ function Player:update(dt)
 end
 
 function Player:draw(renderInfo)
+    local spriteX = self.x + renderInfo.offsetX
+    local spriteY = self.y + renderInfo.offsetY
     -- Draw animated player sprite
     if self.moving == NOT_MOVING and not self.finishingMoveAnimation then
         local animationIndex = math.floor((self.time * IDLE_ANIMATION_RATE) % self.idleSprite:getFrameCount()) + 1
-        self.idleSprite:draw(animationIndex, self.x, self.y - PLAYER_Y_OFFSET, not self.facingRight)
+        self.idleSprite:draw(animationIndex, spriteX, spriteY - PLAYER_Y_OFFSET, not self.facingRight)
     else
         local moveFrameCount = self.moveSprite:getFrameCount()
         local animationIndex = math.floor((self.time * MOVE_ANIMATION_RATE) % moveFrameCount) + 1
-        self.moveSprite:draw(animationIndex, self.x, self.y - PLAYER_Y_OFFSET, not self.facingRight)
+        self.moveSprite:draw(animationIndex, spriteX, spriteY - PLAYER_Y_OFFSET, not self.facingRight)
         self.finishingMoveAnimation = animationIndex ~= 1 -- quit move anim on frame 1
     end
 

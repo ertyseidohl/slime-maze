@@ -9,7 +9,7 @@ local config = {
     mazeHeight = 12,
     mazeWidth = 14,
     scaleFactor = 3,
-    tileSize = 16,
+    tileSize = 16
 }
 local currentTime = 0
 local spritesheets = {}
@@ -24,7 +24,7 @@ local function stateTransition(toState)
     if toState == 'menu' then
         gameState = StateMenu:new(stateTransition)
     elseif toState == 'playing' then
-        gameState = StatePlaying:new(stateTransition, config, spritesheets)
+        gameState = StatePlaying:new(stateTransition, config, spritesheets, 1)
     else
         error("Unrecognized state: " .. toState)
     end

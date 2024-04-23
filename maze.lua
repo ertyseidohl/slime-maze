@@ -63,13 +63,6 @@ function Maze:generate()
     else
         assert(false, "Unrecognized maze algo")
     end
-
-    -- Add special end cell
-    local endCell = Cell:new(self.width + 1, self.height)
-    self.cells[endCell.key] = endCell
-    local penultimateCell = self.cells[Cell:key(self.width, self.height)]
-    endCell.connections[penultimateCell.key] = true
-    penultimateCell.connections[endCell.key] = true
 end
 
 function Maze:generateKruskal()
