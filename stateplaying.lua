@@ -251,20 +251,18 @@ function StatePlaying:renderPlayerScreen(playerNum, rect, mazeCanvas)
     love.graphics.setBlendMode("alpha")
 
     -- debug
-    if false then
-        for i, d in ipairs({
-            "cameraX " .. rect.cameraX,
-            "cameraY " .. rect.cameraY,
-            "cameraVX " .. rect.cameraVX,
-            "cameraVY " .. rect.cameraVY,
-            "cameraRelativeX " .. self.players[playerNum].x - rect.cameraX,
-            "cameraRelativeY " .. self.players[playerNum].y - rect.cameraY,
-            "rect.width " .. rect.width,
-            "rect.height " .. rect.height
-        }) do
-            love.graphics.print(d , 0, 0 + (i * 10))
-        end
-    end
+    -- for i, d in ipairs({
+    --     "cameraX " .. rect.cameraX,
+    --     "cameraY " .. rect.cameraY,
+    --     "cameraVX " .. rect.cameraVX,
+    --     "cameraVY " .. rect.cameraVY,
+    --     "cameraRelativeX " .. self.players[playerNum].x - rect.cameraX,
+    --     "cameraRelativeY " .. self.players[playerNum].y - rect.cameraY,
+    --     "rect.width " .. rect.width,
+    --     "rect.height " .. rect.height
+    -- }) do
+    --     love.graphics.print(d , 0, 0 + (i * 10))
+    -- end
 
     for i = 1, #self.players, 1 do
         -- This draws all players, which is not optimal (since many are not visible)

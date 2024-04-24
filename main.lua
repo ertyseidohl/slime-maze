@@ -80,6 +80,10 @@ end
 
 function love.update(dt)
     currentTime = currentTime + dt
+    local fps = math.floor(1/dt)
+    if fps < 60 then
+        print("Warning: Long Frame (" .. fps .." fps, " .. dt .. "ms)")
+    end
     if gameState == nil then
         error('gameState was nil in update')
     end
@@ -92,7 +96,7 @@ function love.draw()
         error('gameState was nil in draw')
     end
 
-    gameState:draw(currentTime)
+   gameState:draw(currentTime)
 end
 
 function love.joystickpressed(joystick, button)

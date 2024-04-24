@@ -74,7 +74,7 @@ function Player:initialize(mazeX, mazeY, maze, tileSize, keys, playerIndex)
     self.idleSprite = AnimatedSprite(idleSpritesheet)
 
     -- Moving sprite
-    local moveSpritesheet = Spritesheet:new(PLAYER_SPRITES[playerIndex]["idle"], 21, 18)
+    local moveSpritesheet = Spritesheet:new(PLAYER_SPRITES[playerIndex]["move"], 21, 18)
     moveSpritesheet:nameQuads({
         {1, 1, 1},
         {2, 2, 1},
