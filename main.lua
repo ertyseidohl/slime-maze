@@ -2,13 +2,13 @@ local Spritesheet = require 'spritesheet'
 local StateMenu = require 'statemenu'
 local StatePlaying = require 'stateplaying'
 
-local LAND_SPRITESHEET_PATH = "assets/Sprout Lands - Sprites - premium pack/Tilesets/ground tiles/New tiles/Grass_Hill_Tiles_v2.png"
-local GROUND_SPRITESHEET_PATH = "assets/Sprout Lands - Sprites - premium pack/Tilesets/ground tiles/New tiles/Soil_Ground_Tiles.png"
+local LAND_SPRITESHEET_PATH = "assets/Grass_Hill_Tiles_v2.png"
+local GROUND_SPRITESHEET_PATH = "assets/Soil_Ground_Tiles.png"
 
 local config = {
     mazeHeight = 12,
     mazeWidth = 14,
-    scaleFactor = 3,
+    scaleFactor = 4,
     tileSize = 16
 }
 local currentTime = 0
@@ -24,7 +24,7 @@ local function stateTransition(toState)
     if toState == 'menu' then
         gameState = StateMenu:new(stateTransition)
     elseif toState == 'playing' then
-        gameState = StatePlaying:new(stateTransition, config, spritesheets, 1)
+        gameState = StatePlaying:new(stateTransition, config, spritesheets, 4)
     else
         error("Unrecognized state: " .. toState)
     end

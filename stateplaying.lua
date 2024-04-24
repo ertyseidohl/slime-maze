@@ -10,6 +10,33 @@ local mazeCanvas = nil
 
 local CAMERA_BUFFER = 100
 
+local KEY_CONFIG = {
+    {
+        up = "w",
+        down = "s",
+        left = "a",
+        right = "d"
+    },
+    {
+        up = "t",
+        down = "g",
+        left = "f",
+        right = "h"
+    },
+    {
+        up = "i",
+        down = "k",
+        left = "j",
+        right = "l"
+    },
+    {
+        up = "up",
+        down = "down",
+        left = "left",
+        right = "right"
+    }
+}
+
 local GROUND_TILE_NAMES = {
     "ground",
     "grounddark1",
@@ -28,6 +55,7 @@ function CreateQuarterScreens()
     local screenWidth = love.graphics.getWidth()
     local screenHeight = love.graphics.getHeight()
 
+    -- TODO: center cameras on players at beginning
     return {
         {
             x = 0,
@@ -122,6 +150,7 @@ function StatePlaying:createMaze()
     -- Set premultiplied alpha blend mode since we've
     -- already rendered the maze to canvas
     love.graphics.setBlendMode("alpha", "premultiplied")
+    unscaledMazeCanvas:setFilter("linear", "nearest")
     love.graphics.draw(unscaledMazeCanvas, love.math.newTransform(
         0, -- x
         0, -- y
@@ -147,11 +176,25 @@ end
 
 function StatePlaying:restart()
     self:createMaze()
-    self.quarterScreens = CreateQuarterScreens()
+    local startConfig = {
+        {x = 1, y = 1},
+        {x = 1, y = self.config.mazeHeight},
+        {x = self.config.mazeWidth, y = 1},
+        {x = self.config.mazeWidth, y = self.config.mazeHeight}
+    }
+
     self.players = {}
-    for i = 0, self.numPlayers, 1 do
-        self.players[i] = Player:new(1, 1, maze, self.config.tileSize * self.config.scaleFactor)
+    for i = 1, self.numPlayers, 1 do
+        self.players[i] = Player:new(
+            startConfig[i]["x"], -- mazeX
+            startConfig[i]["y"], -- mazeY
+            maze, -- maze
+            self.config.tileSize * self.config.scaleFactor, -- tileSize
+            KEY_CONFIG[i], -- keys
+            i -- playerIndex
+        )
     end
+    self.quarterScreens = CreateQuarterScreens()
 end
 
 function StatePlaying:exitState()
@@ -165,7 +208,8 @@ function StatePlaying:update(dt)
 end
 
 function StatePlaying:renderPlayerScreen(playerNum, rect, mazeCanvas)
-    love.graphics.rectangle("line", rect.x, rect.y, rect.width, rect.height)
+    local quarterScreenCanvas = love.graphics.newCanvas(rect.width, rect.height)
+    love.graphics.setCanvas(quarterScreenCanvas)
     local loopStop = 100
 
     while self.players[playerNum].x - rect.cameraX < CAMERA_BUFFER and rect.cameraX > 0 and loopStop > 0 do
@@ -201,33 +245,46 @@ function StatePlaying:renderPlayerScreen(playerNum, rect, mazeCanvas)
             rect.width, -- width
             rect.height, -- height
             mazeCanvas -- texture
-        ), -- quad
-        love.math.newTransform(
-            rect.x, -- x
-            rect.y -- y
-        )
+        ) -- quad
     )
     -- back to the default alpha blend mode
     love.graphics.setBlendMode("alpha")
 
     -- debug
-    for i, d in ipairs({
-        "cameraX " .. rect.cameraX,
-        "cameraY " .. rect.cameraY,
-        "cameraVX " .. rect.cameraVX,
-        "cameraVY " .. rect.cameraVY,
-        "cameraRelativeX " .. self.players[playerNum].x - rect.cameraX,
-        "cameraRelativeY " .. self.players[playerNum].y - rect.cameraY,
-        "rect.width " .. rect.width,
-        "rect.height " .. rect.height
-    }) do
-        love.graphics.print(d , rect.x, rect.y + (i * 10))
+    if false then
+        for i, d in ipairs({
+            "cameraX " .. rect.cameraX,
+            "cameraY " .. rect.cameraY,
+            "cameraVX " .. rect.cameraVX,
+            "cameraVY " .. rect.cameraVY,
+            "cameraRelativeX " .. self.players[playerNum].x - rect.cameraX,
+            "cameraRelativeY " .. self.players[playerNum].y - rect.cameraY,
+            "rect.width " .. rect.width,
+            "rect.height " .. rect.height
+        }) do
+            love.graphics.print(d , 0, 0 + (i * 10))
+        end
     end
 
-    self.players[playerNum]:draw({
-        offsetX = -rect.cameraX + rect.x,
-        offsetY = -rect.cameraY + rect.y
-    })
+    for i = 1, #self.players, 1 do
+        -- This draws all players, which is not optimal (since many are not visible)
+        self.players[i]:draw({
+            offsetX = -rect.cameraX,
+            offsetY = -rect.cameraY
+        })
+    end
+
+    -- Overlay
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.setLineWidth(2)
+    love.graphics.rectangle("line", 0, 0, rect.width, rect.height)
+    love.graphics.reset()
+
+    -- Back to default canvas
+    love.graphics.setCanvas()
+
+    -- Render our QuarterCanvas to the main drawing buffer
+    love.graphics.draw(quarterScreenCanvas, rect.x, rect.y)
 end
 
 function StatePlaying:draw(dt)

@@ -20,15 +20,33 @@ PLAYER_Y_OFFSET = 8 -- the ground sprites are slightly low
 IDLE_ANIMATION_RATE = 4
 MOVE_ANIMATION_RATE = 8
 
-local SLIME_IDLE_SPRITESHEET_PATH = "assets/Slimes/slime_idle_sheet.png"
-local SLIME_MOVE_SPRITESHEET_PATH = "assets/Slimes/slime_move_sheet.png"
+local PLAYER_SPRITES = {
+    {
+        idle = "assets/slime_idle_sheet_1.png",
+        move = "assets/slime_move_sheet_1.png"
+    },
+    {
+        idle = "assets/slime_idle_sheet_2.png",
+        move = "assets/slime_move_sheet_2.png"
+    },
+    {
+        idle = "assets/slime_idle_sheet_3.png",
+        move = "assets/slime_move_sheet_3.png"
+    },
+    {
+        idle = "assets/slime_idle_sheet_4.png",
+        move = "assets/slime_move_sheet_4.png"
+    }
+}
 
-function Player:initialize(mazeX, mazeY, maze, tileSize)
+function Player:initialize(mazeX, mazeY, maze, tileSize, keys, playerIndex)
     self.mazeX = mazeX
     self.mazeY = mazeY
     self.maze = maze
     self.tileSize = tileSize
     self.time = 0
+    self.keys = keys
+    self.playerIndex = playerIndex
 
     self.facingRight = true -- sprite is facing right by default
 
@@ -48,7 +66,7 @@ function Player:initialize(mazeX, mazeY, maze, tileSize)
     self.finishingMoveAnimation = false
 
     -- Idle sprite
-    local idleSpritesheet = Spritesheet:new(SLIME_IDLE_SPRITESHEET_PATH, 21, 15)
+    local idleSpritesheet = Spritesheet:new(PLAYER_SPRITES[playerIndex]["idle"], 21, 15)
     idleSpritesheet:nameQuads({
         {1, 1, 1},
         {2, 2, 1}
@@ -56,7 +74,7 @@ function Player:initialize(mazeX, mazeY, maze, tileSize)
     self.idleSprite = AnimatedSprite(idleSpritesheet)
 
     -- Moving sprite
-    local moveSpritesheet = Spritesheet:new(SLIME_MOVE_SPRITESHEET_PATH, 21, 18)
+    local moveSpritesheet = Spritesheet:new(PLAYER_SPRITES[playerIndex]["idle"], 21, 18)
     moveSpritesheet:nameQuads({
         {1, 1, 1},
         {2, 2, 1},
@@ -86,10 +104,10 @@ function Player:update(dt)
     self.time = self.time + dt
 
     -- Figure out what keys the player is pressing
-    local pressingUp = love.keyboard.isDown('w', 'up')
-    local pressingDown = love.keyboard.isDown('s', 'down')
-    local pressingLeft = love.keyboard.isDown('a', 'left')
-    local pressingRight = love.keyboard.isDown('d', 'right')
+    local pressingUp = love.keyboard.isDown(self.keys['up'])
+    local pressingDown = love.keyboard.isDown(self.keys['down'])
+    local pressingLeft = love.keyboard.isDown(self.keys['left'])
+    local pressingRight = love.keyboard.isDown(self.keys['right'])
 
     -- Update if we are facing right
     if pressingLeft and self.facingRight then
