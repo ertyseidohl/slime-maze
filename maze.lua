@@ -10,9 +10,9 @@ function Maze:initialize(width, height)
     print("Initializing Maze with seed " .. seed)
     math.randomseed(seed)
     self.cells = {}
-    self.cellsByDistanceFromOrigin = {}
     self.width = width
     self.height = height
+    self.leafNodes = {}
     for x = 1, width, 1 do
         for y = 1, height, 1 do
             local newCell = Cell:new(x, y)
@@ -81,14 +81,14 @@ function Maze:generateKruskal()
         for x = 1, self.width, 1 do
             if self:isValid(x + 1, y) then
                 table.insert(allEdges, {
-                    ["a"] = Cell:key(x, y);
-                    ["b"] = Cell:key(x + 1, y);
+                    a = Cell:key(x, y),
+                    b = Cell:key(x + 1, y)
                 })
             end
             if self:isValid(x, y + 1) then
                 table.insert(allEdges, {
-                    ["a"] = Cell:key(x, y);
-                    ["b"] = Cell:key(x, y + 1);
+                    a = Cell:key(x, y),
+                    b = Cell:key(x, y + 1)
                 })
             end
         end
@@ -123,11 +123,18 @@ function Maze:generateKruskal()
              end
         end
     end
-end
 
+    -- Generate list of leaf nodes
+    for _, cell in ipairs(self.cells) do
+        if #cell.connections == 1 then
+            table.insert(self.leafNodes, cell)
+        end
+    end
+end
 
 function Maze:generateBacktracker()
     local visitedKeys = {}
+    local cellsByDistanceFromOrigin = {}
     local stackKeys = {}
 
     local working = true
@@ -164,10 +171,10 @@ function Maze:generateBacktracker()
 
             -- Push nextCell into cellsByDistanceFromOrigin
             nextCell.distanceFromOrigin = curr.distanceFromOrigin + 1
-            if not self.cellsByDistanceFromOrigin[nextCell.distanceFromOrigin] then
-                self.cellsByDistanceFromOrigin[nextCell.distanceFromOrigin] = {}
+            if not cellsByDistanceFromOrigin[nextCell.distanceFromOrigin] then
+                cellsByDistanceFromOrigin[nextCell.distanceFromOrigin] = {}
             end
-            table.insert(self.cellsByDistanceFromOrigin[nextCell.distanceFromOrigin], nextCell)
+            table.insert(cellsByDistanceFromOrigin[nextCell.distanceFromOrigin], nextCell)
 
             -- Push the previous cell onto the stack
             table.insert(stackKeys, curr.key)
