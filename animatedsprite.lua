@@ -1,7 +1,5 @@
 local class = require 'lib.middleclass'
 
-local Spritesheet = require 'spritesheet'
-
 local AnimatedSprite = class('AnimatedSprite')
 
 function AnimatedSprite:initialize(spritesheet)

@@ -26,6 +26,7 @@ function Cell:initialize(x, y)
     self.y = y
     self.neighbors = {} -- array
     self.connections = {} -- set
+    self.connectionsCount = 0 -- Manual tabulation
     self.key = Cell:key(x, y)
     self.distanceFromOrigin = nil
 end
@@ -74,6 +75,11 @@ end
 
 function Cell:print()
     return CELL_PRINT[self:tileKey()]
+end
+
+function Cell:addConnection(key)
+    self.connectionsCount = self.connectionsCount + 1
+    self.connections[key] = true
 end
 
 function Cell:debugPrintConnections()

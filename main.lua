@@ -29,6 +29,7 @@ local function stateTransition(toState)
         error("Unrecognized state: " .. toState)
     end
     gameState:enterState()
+    gameState:update(0, currentTime)
 end
 
 function love.load()

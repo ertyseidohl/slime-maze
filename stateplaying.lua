@@ -1,12 +1,13 @@
 local class = require 'lib.middleclass'
 
+local Egg = require 'egg'
 local Maze = require 'maze'
 local Player = require 'player'
 
 local StatePlaying = class('StatePlaying')
 
 local CAMERA_BUFFER = 100
-local SLIME_RADIUS = 16
+local NUM_EGGS_PER_SLIME = 3
 
 local KEY_CONFIG = {
     {
@@ -102,6 +103,10 @@ function StatePlaying.CreateQuarterScreens()
     }
 end
 
+function StatePlaying:isEmptyCell(mazeX, mazeY)
+    return self.eggsUnacquired[mazeX .. "," .. mazeY] == nil
+end
+
 function StatePlaying:createMaze()
     self.maze = Maze:new(self.config.mazeWidth, self.config.mazeHeight)
     self.maze:print()
@@ -167,18 +172,8 @@ function StatePlaying:initialize(stateTransitionFunction, config, spritesheets, 
 
     self.maze = nil
     self.mazeCanvas = nil
-    self.slimeCanvases = {}
-    self.currentSlimeCanvas = 1
-
-    -- Create two slime canvases, to flip back and forth (to simulate slime fading)
-    self.slimeCanvases[1] = love.graphics.newCanvas(
-        self.config.mazeWidth * self.config.scaleFactor * self.config.tileSize,
-        self.config.mazeHeight * self.config.scaleFactor * self.config.tileSize
-    )
-    self.slimeCanvases[2] = love.graphics.newCanvas(
-        self.config.mazeWidth * self.config.scaleFactor * self.config.tileSize,
-        self.config.mazeHeight * self.config.scaleFactor * self.config.tileSize
-    )
+    self.eggsUnacquired = {} -- key: location, value: egg
+    self.eggsAcquired = {[1] = {}, [2] = {}, [3] = {}, [4] = {}} -- key: player, value: list of eggs
 end
 
 function StatePlaying:enterState()
@@ -195,15 +190,26 @@ function StatePlaying:restart()
     }
 
     self.players = {}
-    for i = 1, self.numPlayers, 1 do
-        self.players[i] = Player:new(
-            startConfig[i]["x"], -- mazeX
-            startConfig[i]["y"], -- mazeY
+    for playerIndex = 1, self.numPlayers, 1 do
+        -- Create players
+        self.players[playerIndex] = Player:new(
+            startConfig[playerIndex]["x"], -- mazeX
+            startConfig[playerIndex]["y"], -- mazeY
             self.maze, -- maze
             self.config.tileSize * self.config.scaleFactor, -- tileSize
-            KEY_CONFIG[i], -- keys
-            i -- playerIndex
+            KEY_CONFIG[playerIndex], -- keys
+            playerIndex -- playerIndex
         )
+        -- Place eggs
+        for _ = 1, NUM_EGGS_PER_SLIME, 1 do
+            local randomLeaf = self.maze.potentialItemSites[math.random(#self.maze.potentialItemSites)]
+            if self:isEmptyCell(randomLeaf.x, randomLeaf.y) then
+                self.eggsUnacquired[randomLeaf.x .. "," .. randomLeaf.y] = Egg:new(randomLeaf.x, randomLeaf.y, playerIndex, {
+                    tileSize = self.config.tileSize * self.config.scaleFactor,
+                })
+                self.maze:removePotentialItemSite(randomLeaf.x, randomLeaf.y)
+            end
+        end
     end
     self.quarterScreens = self:CreateQuarterScreens()
 end
@@ -213,16 +219,32 @@ function StatePlaying:exitState()
 end
 
 function StatePlaying:update(dt)
-    -- Update slime canvas
-    if self.currentSlimeCanvas == 1 then
-        self.currentSlimeCanvas = 2
-    else
-        self.currentSlimeCanvas = 1
-    end
-
     -- Update players
     for _, player in ipairs(self.players) do
         player:update(dt)
+    end
+
+    -- Update unacquired eggs
+    for location, egg in pairs(self.eggsUnacquired) do
+        egg:update(dt, 0, 0)
+        if egg:canBePickedUp() then
+            -- Check for player/egg collisions
+            for playerIndex, player in ipairs(self.players) do
+                if player.mazeX == egg.mazeX and player.mazeY == egg.mazeY then
+                    egg:getPickedUp(player)
+                    -- Move egg from unacquired to acquired
+                    self.eggsUnacquired[location] = nil
+                    table.insert(self.eggsAcquired[playerIndex], egg)
+                end
+            end
+        end
+    end
+
+    -- Update acquired eggs
+    for playerNum, eggList in pairs(self.eggsAcquired) do
+        for i, egg in ipairs(eggList) do
+            egg:update(dt, #self.eggsAcquired[playerNum], i)
+        end
     end
 end
 
@@ -270,17 +292,6 @@ function StatePlaying:renderPlayerScreen(playerNum, rect)
         ) -- quad
     )
 
-    -- Now draw the slime canvas
-    love.graphics.draw(
-        self.slimeCanvases[self.currentSlimeCanvas], -- source
-        love.graphics.newQuad(
-            rect.cameraX, -- x
-            rect.cameraY, -- y
-            rect.width, -- width
-            rect.height, -- height
-            self.slimeCanvases[self.currentSlimeCanvas] -- texture
-        ) -- quad
-    )
     -- back to the default alpha blend mode
     love.graphics.setBlendMode("alpha")
 
@@ -306,8 +317,26 @@ function StatePlaying:renderPlayerScreen(playerNum, rect)
         })
     end
 
+    -- Now draw the unacquired eggs
+    for _, egg in pairs(self.eggsUnacquired) do
+        egg:draw({
+            offsetX = -rect.cameraX,
+            offsetY = -rect.cameraY
+        })
+    end
+
+    -- And the acquired Eggs
+    for _, eggList in pairs(self.eggsAcquired) do
+        for _, egg in pairs(eggList) do
+            egg:draw({
+                offsetX = -rect.cameraX,
+                offsetY = -rect.cameraY
+            })
+        end
+    end
+
     -- Overlay
-    love.graphics.setColor(0, 0, 0)
+    love.graphics.setColor(0, 0.3, 0)
     love.graphics.setLineWidth(2)
     love.graphics.rectangle("line", 0, 0, rect.width, rect.height)
     love.graphics.reset()
@@ -319,34 +348,10 @@ function StatePlaying:renderPlayerScreen(playerNum, rect)
     love.graphics.draw(self.players[playerNum].canvas, rect.x, rect.y)
 end
 
-function CopySlimeCanvas(fromCanvas, toCanvas)
-    -- Set premultiplied alpha blend mode since we've
-    -- already rendered the maze to canvas
-    love.graphics.setCanvas(toCanvas)
-    love.graphics.clear()
-    love.graphics.setBlendMode("alpha", "premultiplied")
-    love.graphics.setColor(255, 255, 255, 0.5)
-    love.graphics.draw(fromCanvas, 0, 0)
-    love.graphics.reset()
-end
-
-function StatePlaying:drawSlimeCanvas()
-    love.graphics.setCanvas(self.slimeCanvases[self.currentSlimeCanvas])
-    for _, player in ipairs(self.players) do
-        love.graphics.setColor(255, 0, 255, 0.5)
-        love.graphics.circle("fill", player.x, player.y, SLIME_RADIUS)
-    end
-    love.graphics.reset()
-end
-
-function StatePlaying:draw(dt)
+function StatePlaying:draw()
     if self.mazeCanvas == nil then
         error("mazeCanvas was nil in StatePlaying:draw")
     end
-
-    -- Draw slime canvas
-    -- CopySlimeCanvas(self.slimeCanvases[1], self.slimeCanvases[2])
-    -- self:drawSlimeCanvas()
 
     -- Draw the four quadrants
     for playerNum, rect in ipairs(self.quarterScreens) do

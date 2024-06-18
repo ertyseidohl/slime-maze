@@ -12,7 +12,7 @@ function Maze:initialize(width, height)
     self.cells = {}
     self.width = width
     self.height = height
-    self.leafNodes = {}
+    self.potentialItemSites = {}
     for x = 1, width, 1 do
         for y = 1, height, 1 do
             local newCell = Cell:new(x, y)
@@ -21,6 +21,23 @@ function Maze:initialize(width, height)
         end
     end
     self:generate()
+end
+
+function Maze:removePotentialItemSite(mazeX, mazeY)
+    local newPotentialItemSites = {}
+    local found = false
+    for _, cell in ipairs(self.potentialItemSites) do
+        if cell.x == mazeX and cell.y == mazeY then
+            found = true
+        else
+            table.insert(newPotentialItemSites, cell)
+        end
+    end
+    self.potentialItemSites = newPotentialItemSites
+    if found == false then
+        print("Warning: Tried to removePotentialItemSite at " .. mazeX .. ", "
+        .. mazeY .. " but it was not a potential item site.")
+    end
 end
 
 function Maze:generateNeighbors(cell)
@@ -108,8 +125,8 @@ function Maze:generateKruskal()
             local cellA = self:cellAt(edge.a)
             local cellB = self:cellAt(edge.b)
 
-            cellA.connections[edge.b] = true
-            cellB.connections[edge.a] = true
+            cellA:addConnection(edge.b)
+            cellB:addConnection(edge.a)
 
              -- Update all cells with id same as cell B
              -- This could be optimized!!
@@ -124,12 +141,21 @@ function Maze:generateKruskal()
         end
     end
 
-    -- Generate list of leaf nodes
-    for _, cell in ipairs(self.cells) do
-        if #cell.connections == 1 then
-            table.insert(self.leafNodes, cell)
+    -- Generate list of leaf nodes for potential item sites
+    for _, cell in pairs(self.cells) do
+        if cell.connectionsCount == 1 and self:isCornerCell(cell) == false then
+            table.insert(self.potentialItemSites, cell)
         end
     end
+end
+
+function Maze:isCornerCell(cell)
+    return (
+        cell.key == Cell:key(1, 1) or
+        cell.key == Cell:key(1, self.height) or
+        cell.key == Cell:key(self.width, 1) or
+        cell.key == Cell:key(self.width, self.height)
+    )
 end
 
 function Maze:generateBacktracker()

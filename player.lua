@@ -197,14 +197,6 @@ function Player:draw(renderInfo)
         self.moveSprite:draw(animationIndex, spriteX, spriteY - PLAYER_Y_OFFSET, not self.facingRight)
         self.finishingMoveAnimation = animationIndex ~= 1 -- quit move anim on frame 1
     end
-
-    -- Draw debug player target
-    -- if self.targetMazeX and self.targetMazeY then
-    --     local targetCenter = self:getCenterOf(self.targetMazeX, self.targetMazeY)
-    --     love.graphics.setColor(1, 0, 0)
-    --     love.graphics.rectangle("fill", targetCenter["x"], targetCenter["y"], PLAYER_SIZE, PLAYER_SIZE)
-    --     love.graphics.reset()
-    -- end
 end
 
 return Player
