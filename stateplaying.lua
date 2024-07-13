@@ -164,11 +164,15 @@ function StatePlaying:createMaze()
     love.graphics.setCanvas()
 end
 
-function StatePlaying:initialize(stateTransitionFunction, config, spritesheets, numPlayers)
+function StatePlaying:initialize(stateTransitionFunction, transitionConfig, config, spritesheets, numPlayers)
     self.stateTransitionFunction = stateTransitionFunction
     self.config = config
     self.spritesheets = spritesheets
-    self.numPlayers = numPlayers
+
+    self.numPlayers = 0
+    for playerNum, isIn in pairs(transitionConfig.playersIn) do
+        self.numPlayers = self.numPlayers + 1
+    end
 
     self.maze = nil
     self.mazeCanvas = nil
@@ -198,7 +202,8 @@ function StatePlaying:restart()
             self.maze, -- maze
             self.config.tileSize * self.config.scaleFactor, -- tileSize
             KEY_CONFIG[playerIndex], -- keys
-            playerIndex -- playerIndex
+            playerIndex, -- playerIndex
+            self.spritesheets -- playerSprites
         )
         -- Place eggs
         for _ = 1, NUM_EGGS_PER_SLIME, 1 do

@@ -1,6 +1,5 @@
 local class = require 'lib.middleclass'
 
-local Spritesheet = require 'spritesheet'
 local AnimatedSprite = require 'animatedsprite'
 
 local Player = class("Player")
@@ -20,26 +19,7 @@ PLAYER_Y_OFFSET = 8 -- the ground sprites are slightly low
 IDLE_ANIMATION_RATE = 4
 MOVE_ANIMATION_RATE = 8
 
-local PLAYER_SPRITES = {
-    {
-        idle = "assets/slime_idle_sheet_1.png",
-        move = "assets/slime_move_sheet_1.png"
-    },
-    {
-        idle = "assets/slime_idle_sheet_2.png",
-        move = "assets/slime_move_sheet_2.png"
-    },
-    {
-        idle = "assets/slime_idle_sheet_3.png",
-        move = "assets/slime_move_sheet_3.png"
-    },
-    {
-        idle = "assets/slime_idle_sheet_4.png",
-        move = "assets/slime_move_sheet_4.png"
-    }
-}
-
-function Player:initialize(mazeX, mazeY, maze, tileSize, keys, playerIndex)
+function Player:initialize(mazeX, mazeY, maze, tileSize, keys, playerIndex, spritesheets)
     self.mazeX = mazeX
     self.mazeY = mazeY
     self.maze = maze
@@ -47,6 +27,7 @@ function Player:initialize(mazeX, mazeY, maze, tileSize, keys, playerIndex)
     self.time = 0
     self.keys = keys
     self.playerIndex = playerIndex
+    self.spritesheets = spritesheets
 
     self.facingRight = true -- sprite is facing right by default
 
@@ -65,26 +46,8 @@ function Player:initialize(mazeX, mazeY, maze, tileSize, keys, playerIndex)
     self.moving = NOT_MOVING
     self.finishingMoveAnimation = false
 
-    -- Idle sprite
-    local idleSpritesheet = Spritesheet:new(PLAYER_SPRITES[playerIndex]["idle"], 21, 15)
-    idleSpritesheet:nameQuads({
-        {1, 1, 1},
-        {2, 2, 1}
-    })
-    self.idleSprite = AnimatedSprite(idleSpritesheet)
-
-    -- Moving sprite
-    local moveSpritesheet = Spritesheet:new(PLAYER_SPRITES[playerIndex]["move"], 21, 18)
-    moveSpritesheet:nameQuads({
-        {1, 1, 1},
-        {2, 2, 1},
-        {3, 3, 1},
-        {4, 4, 1},
-        {5, 5, 1},
-        {6, 6, 1},
-        {7, 7, 1}
-    })
-    self.moveSprite = AnimatedSprite(moveSpritesheet)
+    self.idleSprite = AnimatedSprite(spritesheets[playerIndex .. "idle"])
+    self.moveSprite = AnimatedSprite(spritesheets[playerIndex .. "move"])
 end
 
 function Player:getCenterOf(mazeX, mazeY)

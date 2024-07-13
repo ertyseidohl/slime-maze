@@ -5,6 +5,26 @@ local StatePlaying = require 'stateplaying'
 local LAND_SPRITESHEET_PATH = "assets/Grass_Hill_Tiles_v2.png"
 local GROUND_SPRITESHEET_PATH = "assets/Soil_Ground_Tiles.png"
 
+local PLAYER_SPRITES = {
+    {
+        idle = "assets/slime_idle_sheet_1.png", -- pink
+        move = "assets/slime_move_sheet_1.png"
+    },
+    {
+        idle = "assets/slime_idle_sheet_2.png", -- red
+        move = "assets/slime_move_sheet_2.png"
+    },
+    {
+        idle = "assets/slime_idle_sheet_3.png", -- orange
+        move = "assets/slime_move_sheet_3.png"
+    },
+    {
+        idle = "assets/slime_idle_sheet_4.png", -- blue
+        move = "assets/slime_move_sheet_4.png"
+    }
+}
+
+
 local config = {
     mazeHeight = 12,
     mazeWidth = 14,
@@ -17,14 +37,14 @@ local spritesheets = {}
 -- Game States
 local gameState = nil
 
-local function stateTransition(toState)
+local function stateTransition(toState, transitionConfig)
     if gameState ~= nil then
         gameState.exitState()
     end
     if toState == 'menu' then
-        gameState = StateMenu:new(stateTransition)
+        gameState = StateMenu:new(stateTransition, transitionConfig, spritesheets)
     elseif toState == 'playing' then
-        gameState = StatePlaying:new(stateTransition, config, spritesheets, 4)
+        gameState = StatePlaying:new(stateTransition, transitionConfig, config, spritesheets, 4)
     else
         error("Unrecognized state: " .. toState)
     end
@@ -75,8 +95,30 @@ function love.load()
         -- skinny four
         {"uprightdownleft", 9, 5},
     })
+
+    for playerIndex, spriteMaps in pairs(PLAYER_SPRITES) do
+        -- Idle sprite
+        spritesheets[playerIndex .. "idle"] = Spritesheet:new(spriteMaps["idle"], 21, 15)
+        spritesheets[playerIndex .. "idle"]:nameQuads({
+            {1, 1, 1},
+            {2, 2, 1}
+        })
+
+        -- Moving sprite
+        spritesheets[playerIndex .. "move"] = Spritesheet:new(spriteMaps["move"], 21, 18)
+        spritesheets[playerIndex .. "move"]:nameQuads({
+            {1, 1, 1},
+            {2, 2, 1},
+            {3, 3, 1},
+            {4, 4, 1},
+            {5, 5, 1},
+            {6, 6, 1},
+            {7, 7, 1}
+        })
+    end
+
     -- Manage state
-    stateTransition('menu')
+    stateTransition('menu', {})
 end
 
 function love.update(dt)
